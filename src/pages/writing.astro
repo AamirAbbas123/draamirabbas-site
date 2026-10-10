@@ -1,0 +1,48 @@
+---
+import Base from '../layouts/Base.astro';
+import { getSettings, getFeatured, formatDate } from '../lib/content';
+import { getSubstackPosts } from '../lib/feeds';
+const [s, featured] = await Promise.all([getSettings(), getFeatured()]);
+const posts = await getSubstackPosts(s.feeds?.substackFeed, 20);
+const pinned = featured.filter((f) => ['substack', 'linkedin', 'other'].includes(f.entry.platform));
+const subscribeUrl = s.links?.substack;
+---
+<Base title="Writing" description="Essays and explainers on health AI and data science for clinicians and researchers.">
+  <header class="page-head">
+    <h1>Writing</h1>
+    <p>A newsletter that translates health AI and data science for clinicians and researchers{s.stats?.substackSubscribers ? `, read by ${s.stats.substackSubscribers} subscribers` : ''}.</p>
+    {subscribeUrl && <div class="actions"><a class="button" href={subscribeUrl}>Subscribe on Substack</a></div>}
+  </header>
+
+  {pinned.length > 0 && (
+    <section class="section">
+      <div class="section-head"><h2>Start here</h2></div>
+      <ul class="entries">
+        {pinned.map(({ entry: f }) => (
+          <li class="entry">
+            <p class="entry-title"><a href={f.url ?? '#'}>{f.title}</a></p>
+            {f.date && <p class="entry-meta">{formatDate(f.date)}</p>}
+            {f.summary && <p>{f.summary}</p>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <section class="section">
+    <div class="section-head"><h2>Latest posts</h2></div>
+    {posts.length > 0 ? (
+      <ul class="entries">
+        {posts.map((p) => (
+          <li class="entry">
+            <p class="entry-title"><a href={p.url}>{p.title}</a></p>
+            <p class="entry-meta">{formatDate(p.date)}</p>
+            {p.summary && <p class="muted">{p.summary}</p>}
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="empty">New posts appear here as they are published. {subscribeUrl && <a href={subscribeUrl}>Read the newsletter on Substack</a>}</p>
+    )}
+  </section>
+</Base>

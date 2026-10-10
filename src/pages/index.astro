@@ -1,0 +1,167 @@
+---
+import Base from '../layouts/Base.astro';
+import DotGrid from '../components/DotGrid.astro';
+import { getSettings, getImpact, getHome, getChallenge, getFeatured, getProjects, challengeProgress, formatDate } from '../lib/content';
+import { getSubstackPosts, getYoutubeVideos } from '../lib/feeds';
+
+const [s, impact, home, challenge, featured, projects] = await Promise.all([
+  getSettings(), getImpact(), getHome(), getChallenge(), getFeatured(), getProjects(),
+]);
+const [posts, videosEn, videosUr] = await Promise.all([
+  getSubstackPosts(s.feeds?.substackFeed, 3),
+  getYoutubeVideos(s.feeds?.youtubeEnChannelId, 3),
+  getYoutubeVideos(s.feeds?.youtubeUrChannelId, 3),
+]);
+
+// Pinned items from the admin panel come first, then the latest from each feed.
+const pinnedWriting = featured.filter((f) => f.entry.platform === 'substack' || f.entry.platform === 'linkedin' || f.entry.platform === 'other')
+  .map((f) => ({ title: f.entry.title, url: f.entry.url ?? '#', date: f.entry.date ?? '' }));
+const writing = [...pinnedWriting, ...posts.map((p) => ({ title: p.title, url: p.url, date: p.date }))].slice(0, 3);
+const pinnedVideos = featured.filter((f) => f.entry.platform.startsWith('youtube'))
+  .map((f) => ({ title: f.entry.title, url: f.entry.url ?? '#', date: f.entry.date ?? '', lang: f.entry.platform === 'youtube-ur' ? 'Urdu' : 'English' }));
+const videos = [
+  ...pinnedVideos,
+  ...[...videosEn.map((v) => ({ ...v, lang: 'English' })), ...videosUr.map((v) => ({ ...v, lang: 'Urdu' }))]
+    .sort((a, b) => b.date.localeCompare(a.date)),
+].slice(0, 3);
+
+const progress = challengeProgress(challenge.startDate, challenge.targetDays ?? 1065);
+const fullName = `${s.honorific ? s.honorific + ' ' : ''}${s.name}`;
+---
+<Base>
+  <section class="hero" class:list={{ 'has-photo': !!s.photo }}>
+    <div class="hero-text">
+      <h1>{fullName}</h1>
+      {s.headline && <p class="headline">{s.headline}</p>}
+      {s.intro && <p class="intro">{s.intro}</p>}
+      <div class="actions">
+        <a class="button" href="/contact">Get in touch</a>
+        {s.cv && <a class="button quiet" href={s.cv} download>Download CV</a>}
+        <a class="button quiet" href="/about">Read the full profile</a>
+      </div>
+    </div>
+    {s.photo && (
+      <div class="hero-photo">
+        <img src={s.photo} alt={`Portrait of ${fullName}`} width="420" height="520" loading="eager" />
+      </div>
+    )}
+  </section>
+
+  {home.showImpact && impact.length > 0 && (
+    <section class="impact" aria-label="At a glance">
+      <dl>
+        {impact.map((i) => (
+          <div>
+            <dt>{i.label}</dt>
+            <dd>{i.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )}
+
+  {home.showWork && home.areas.length > 0 && (
+    <section class="section">
+      <div class="section-head"><h2>Areas of work</h2></div>
+      <ul class="areas">
+        {home.areas.map((a) => (
+          <li>
+            <h3><a href={a.href}>{a.title}</a></h3>
+            <p class="muted">{a.summary}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {home.showChallenge && (
+    <section class="section">
+      <div class="section-head">
+        <h2>The 1065-day LinkedIn challenge</h2>
+        <a href="/linkedin-challenge">About the challenge</a>
+      </div>
+      {progress.started ? (
+        <>
+          <p class="challenge-count"><strong>Day {progress.day}</strong> <span class="muted">of {progress.target}</span></p>
+          <DotGrid day={progress.day} target={progress.target} compact />
+        </>
+      ) : (
+        <>
+          <p class="muted prose">One post a day for {progress.target} days on health AI, data and careers in medicine.</p>
+          <DotGrid day={0} target={progress.target} compact />
+        </>
+      )}
+    </section>
+  )}
+
+  {home.showLatest && (writing.length > 0 || videos.length > 0) && (
+    <section class="section two-col">
+      {writing.length > 0 && (
+        <div>
+          <div class="section-head"><h2>Latest writing</h2><a href="/writing">All writing</a></div>
+          <ul class="entries">
+            {writing.map((p) => (
+              <li class="entry">
+                <p class="entry-title"><a href={p.url}>{p.title}</a></p>
+                {p.date && <p class="entry-meta">{formatDate(p.date)}</p>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {videos.length > 0 && (
+        <div>
+          <div class="section-head"><h2>Latest videos</h2><a href="/videos">All videos</a></div>
+          <ul class="entries">
+            {videos.map((v) => (
+              <li class="entry">
+                <p class="entry-title"><a href={v.url}>{v.title}</a></p>
+                <p class="entry-meta">{v.lang}{v.date && `, ${formatDate(v.date)}`}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  )}
+
+  {home.showProjects && projects.length > 0 && (
+    <section class="section">
+      <div class="section-head"><h2>Projects</h2><a href="/projects">All projects</a></div>
+      <ul class="entries">
+        {projects.slice(0, 3).map(({ entry: p }) => (
+          <li class="entry">
+            <p class="entry-title">{p.url ? <a href={p.url}>{p.name}</a> : p.name}</p>
+            <p class="entry-meta">{p.status}</p>
+            <p>{p.description}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</Base>
+
+<style>
+  .hero { display: grid; gap: clamp(2rem, 5vw, 4rem); align-items: end; }
+  @media (min-width: 860px) { .hero.has-photo { grid-template-columns: 1.6fr 1fr; } }
+  .hero h1 { font-size: var(--step-4); font-weight: 600; letter-spacing: -0.025em; margin-bottom: 1.25rem; }
+  .headline { font-family: var(--serif); font-size: clamp(1.3rem, 2.4vw, 1.65rem); line-height: 1.35; max-width: 34rem; margin-bottom: 1rem; }
+  .intro { color: var(--muted); max-width: var(--measure); margin-bottom: 1.75rem; }
+  .hero-photo img { border-radius: 8px; width: 100%; max-width: 22rem; aspect-ratio: 4 / 5; object-fit: cover; }
+
+  .impact { margin-top: clamp(3rem, 7vw, 4.5rem); }
+  .impact dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 1.5rem 2rem; margin: 0; border-top: 1px solid var(--rule); padding-top: 1.5rem; }
+  .impact div { display: flex; flex-direction: column; }
+  .impact dd { order: -1; }
+  .impact dd { margin: 0; font-family: var(--serif); font-size: var(--step-3); font-weight: 600; line-height: 1; color: var(--accent); }
+  .impact dt { color: var(--muted); font-size: var(--step--1); margin-top: 0.4rem; line-height: 1.35; }
+
+  .areas { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.75rem 3rem; }
+  @media (min-width: 760px) { .areas { grid-template-columns: 1fr 1fr; } }
+  .areas h3 { margin-bottom: 0.3rem; }
+  .areas h3 a { color: var(--ink); text-decoration: none; }
+  .areas h3 a:hover { color: var(--accent); text-decoration: underline; }
+  .areas p { margin: 0; }
+
+  .challenge-count { font-family: var(--serif); font-size: var(--step-2); margin-bottom: 1rem; }
+</style>

@@ -1,0 +1,10 @@
+{
+  "name": "This website",
+  "status": "Launched",
+  "description": "Built with Astro and Keystatic. Every page is edited through an admin panel and versioned on GitHub.",
+  "url": null,
+  "repo": null,
+  "started": "2026",
+  "order": 9,
+  "publish": true
+}

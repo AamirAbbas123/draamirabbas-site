@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import { getRoles, getProgrammes } from '../lib/content';
+const [roles, programmes] = await Promise.all([getRoles(), getProgrammes()]);
+---
+<Base title="Work" description="Leadership roles and flagship programmes.">
+  <header class="page-head">
+    <h1>Work</h1>
+    <p>Leading data and digital work for maternal and child health, and the programmes it supports.</p>
+  </header>
+
+  {roles.map(({ entry: r }) => (
+    <section class="role">
+      <div class="role-side">
+        <p class="entry-meta">{[r.start, r.end || (r.start ? 'present' : '')].filter(Boolean).join(' to ')}</p>
+      </div>
+      <div class="prose">
+        <h2>{r.title}</h2>
+        <p class="org">{r.orgUrl ? <a href={r.orgUrl}>{r.organisation}</a> : r.organisation}</p>
+        {r.summary && <p>{r.summary}</p>}
+        {r.units.length > 0 && (
+          <p class="units"><span class="muted">Teams: </span>{r.units.map((u) => <span class="tag">{u}</span>)}</p>
+        )}
+        {r.achievements.length > 0 && <ul class="achievements">{r.achievements.map((a) => <li>{a}</li>)}</ul>}
+      </div>
+    </section>
+  ))}
+
+  {programmes.length > 0 && (
+    <section class="section">
+      <div class="section-head"><h2>Programmes and studies</h2></div>
+      <ul class="entries">
+        {programmes.map(({ entry: p }) => (
+          <li class="entry programme">
+            <div>
+              <p class="entry-title">{p.link ? <a href={p.link}>{p.name}</a> : p.name}</p>
+              <p class="entry-meta">{[p.role, p.funder].filter(Boolean).join(', ')}</p>
+              <p>{p.summary}</p>
+              {p.outcome && <p><strong>Outcome:</strong> {p.outcome}</p>}
+            </div>
+            {p.image && <img src={p.image} alt="" loading="lazy" width="320" height="200" />}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</Base>
+<style>
+  .role { display: grid; gap: 0.5rem 2rem; border-top: 1px solid var(--ink); padding-top: 1.25rem; margin-bottom: 3rem; }
+  @media (min-width: 760px) { .role { grid-template-columns: 10rem 1fr; } }
+  .role h2 { margin-bottom: 0.15rem; }
+  .org { font-size: var(--step-1); color: var(--muted); }
+  .units { line-height: 2; }
+  .achievements { padding-left: 1.2rem; }
+  .achievements li { margin-bottom: 0.4rem; }
+  .programme { display: grid; gap: 1rem 2rem; }
+  @media (min-width: 760px) { .programme:has(img) { grid-template-columns: 1fr 16rem; } }
+  .programme img { border-radius: 6px; object-fit: cover; aspect-ratio: 16 / 10; }
+</style>

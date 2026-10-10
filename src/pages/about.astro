@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import { getSettings, getAbout, paragraphs } from '../lib/content';
+const [s, about] = await Promise.all([getSettings(), getAbout()]);
+const fullName = `${s.honorific ? s.honorific + ' ' : ''}${s.name}`;
+---
+<Base title="About" description={`About ${fullName}: education, career and recognition.`}>
+  <header class="page-head">
+    <h1>About</h1>
+    {s.headline && <p>{s.headline}</p>}
+  </header>
+  <div class="about">
+    <div class="prose">
+      {paragraphs(about.story).map((p) => <p>{p}</p>)}
+      <div class="actions">
+        {s.cv && <a class="button" href={s.cv} download>Download CV (PDF)</a>}
+        <a class="button quiet" href="/contact">Get in touch</a>
+      </div>
+    </div>
+    {s.photo && <img class="portrait" src={s.photo} alt={`Portrait of ${fullName}`} width="360" height="450" />}
+  </div>
+
+  {about.education.length > 0 && (
+    <section class="section">
+      <div class="section-head"><h2>Education</h2></div>
+      <ul class="entries">
+        {about.education.map((e) => (
+          <li class="entry">
+            <p class="entry-title">{e.degree}</p>
+            <p class="entry-meta">{[e.institution, e.year, e.note].filter(Boolean).join(', ')}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {about.honours.length > 0 && (
+    <section class="section">
+      <div class="section-head"><h2>Honours and recognition</h2></div>
+      <ul class="entries">{about.honours.map((h) => <li>{h}</li>)}</ul>
+    </section>
+  )}
+</Base>
+<style>
+  .about { display: grid; gap: 2.5rem; }
+  @media (min-width: 860px) { .about { grid-template-columns: 1.6fr 1fr; } }
+  .portrait { border-radius: 8px; max-width: 20rem; aspect-ratio: 4 / 5; object-fit: cover; }
+  .prose p { font-size: 1.1rem; }
+</style>

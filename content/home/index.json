@@ -1,0 +1,44 @@
+{
+  "showImpact": true,
+  "showWork": true,
+  "showLatest": true,
+  "showChallenge": true,
+  "showProjects": true,
+  "areas": [
+    {
+      "title": "Data and digital at Vital Pakistan Trust",
+      "summary": "Leading data engineering, digital health, MEAL, analytics, field operations and research for a maternal and child health NGO.",
+      "href": "/work"
+    },
+    {
+      "title": "Research",
+      "summary": "Peer-reviewed work in health AI, NLP, maternal and child health, stroke and paediatric oncology.",
+      "href": "/research"
+    },
+    {
+      "title": "Writing",
+      "summary": "A Substack newsletter that translates health AI and data science for clinicians and researchers.",
+      "href": "/writing"
+    },
+    {
+      "title": "Videos",
+      "summary": "Teaching epidemiology, data analysis and health AI on YouTube in English and Urdu.",
+      "href": "/videos"
+    },
+    {
+      "title": "The 1065-day LinkedIn challenge",
+      "summary": "A post every day for 1065 days on health AI, data and careers.",
+      "href": "/linkedin-challenge"
+    },
+    {
+      "title": "Alumni networks",
+      "summary": "Connecting graduates of Khyber Medical College and Aga Khan University for mentoring and collaboration.",
+      "href": "/community"
+    },
+    {
+      "title": "Projects",
+      "summary": "Open code on GitHub and new initiatives, including EpiData Insights.",
+      "href": "/projects"
+    }
+  ]
+}

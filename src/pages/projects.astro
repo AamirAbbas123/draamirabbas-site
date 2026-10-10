@@ -1,0 +1,56 @@
+---
+import Base from '../layouts/Base.astro';
+import { getProjects, getGithubSettings, getSettings, formatDate } from '../lib/content';
+import { getGithubRepos } from '../lib/feeds';
+const [projects, gh, s] = await Promise.all([getProjects(), getGithubSettings(), getSettings()]);
+const hidden = new Set(gh.hiddenRepos.map((r) => r.toLowerCase().trim()));
+const repos = gh.showRepos
+  ? (await getGithubRepos(s.feeds?.githubUsername)).filter((r) => !hidden.has(r.name.toLowerCase())).slice(0, gh.maxRepos ?? 9)
+  : [];
+const order = ['Launched', 'In development', 'Idea', 'Archived'];
+const groups = order.map((st) => ({ status: st, items: projects.filter((p) => p.entry.status === st) })).filter((g) => g.items.length);
+---
+<Base title="Projects" description="Initiatives, ventures and open code.">
+  <header class="page-head">
+    <h1>Projects</h1>
+    <p>Initiatives and open code, from research consulting to tools for health data.</p>
+    {s.links?.github && <div class="actions"><a class="button quiet" href={s.links.github}>GitHub profile</a></div>}
+  </header>
+
+  {groups.map((g) => (
+    <section class="section">
+      <div class="section-head"><h2>{g.status}</h2></div>
+      <ul class="entries">
+        {g.items.map(({ entry: p }) => (
+          <li class="entry">
+            <p class="entry-title">{p.url ? <a href={p.url}>{p.name}</a> : p.name}</p>
+            {p.started && <p class="entry-meta">Since {p.started}</p>}
+            <p>{p.description}</p>
+            {p.repo && <p class="small"><a href={p.repo}>Source code on GitHub</a></p>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+
+  {repos.length > 0 && (
+    <section class="section">
+      <div class="section-head"><h2>Open code on GitHub</h2></div>
+      <ul class="repos">
+        {repos.map((r) => (
+          <li>
+            <a href={r.url} class="repo-name">{r.name}</a>
+            {r.description && <p>{r.description}</p>}
+            <p class="entry-meta">{[r.language, r.stars ? `${r.stars} stars` : '', `updated ${formatDate(r.updated)}`].filter(Boolean).join(', ')}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</Base>
+<style>
+  .repos { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.5rem 2.5rem; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); }
+  .repos li { border-left: 3px solid var(--tint); padding-left: 1rem; }
+  .repo-name { font-weight: 700; font-size: 1.05rem; }
+  .repos p { margin: 0.25rem 0 0; }
+</style>

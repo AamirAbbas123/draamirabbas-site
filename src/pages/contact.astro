@@ -1,0 +1,52 @@
+---
+import Base from '../layouts/Base.astro';
+import { getSettings } from '../lib/content';
+const s = await getSettings();
+const reasons = ['Research collaboration', 'Speaking or teaching', 'Consulting', 'Media', 'Students and mentoring', 'Something else'];
+---
+<Base title="Contact" description="Get in touch about collaboration, speaking, consulting or mentoring.">
+  <header class="page-head">
+    <h1>Get in touch</h1>
+    <p>For research collaboration, speaking, consulting or mentoring.</p>
+  </header>
+  <div class="two-col">
+    {s.contactFormEndpoint ? (
+      <form action={s.contactFormEndpoint} method="POST" class="form">
+        <label>Your name<input name="name" required autocomplete="name" /></label>
+        <label>Email<input type="email" name="email" required autocomplete="email" /></label>
+        <label>What is it about?
+          <select name="topic">{reasons.map((r) => <option>{r}</option>)}</select>
+        </label>
+        <label>Message<textarea name="message" rows="6" required></textarea></label>
+        <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="trap" aria-hidden="true" />
+        <button class="button" type="submit">Send message</button>
+      </form>
+    ) : (
+      <div class="prose">
+        <p>Email is the quickest way to reach me.</p>
+        {s.email && <p><a class="button" href={`mailto:${s.email}`}>{s.email}</a></p>}
+      </div>
+    )}
+    <div>
+      <h2 class="h3">Elsewhere</h2>
+      <ul class="entries">
+        {s.email && s.contactFormEndpoint && <li>Email: <a href={`mailto:${s.email}`}>{s.email}</a></li>}
+        {s.links?.linkedin && <li><a href={s.links.linkedin}>LinkedIn</a></li>}
+        {s.links?.substack && <li><a href={s.links.substack}>Substack</a></li>}
+        {s.links?.youtubeEn && <li><a href={s.links.youtubeEn}>YouTube (English)</a></li>}
+        {s.links?.youtubeUr && <li><a href={s.links.youtubeUr}>YouTube (Urdu)</a></li>}
+        {s.links?.github && <li><a href={s.links.github}>GitHub</a></li>}
+        {s.links?.orcid && <li><a href={s.links.orcid}>ORCID</a></li>}
+      </ul>
+      <p class="muted small">Based in {s.location}.</p>
+    </div>
+  </div>
+</Base>
+<style>
+  .form { display: grid; gap: 1rem; max-width: 32rem; }
+  .form label { display: grid; gap: 0.35rem; font-weight: 700; font-size: 0.95rem; }
+  .form input, .form select, .form textarea { font: inherit; font-weight: 400; padding: 0.65rem 0.75rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink); }
+  .form button { justify-self: start; }
+  .trap { position: absolute; left: -9999px; }
+  .h3 { font-size: var(--step-1); }
+</style>

@@ -1,0 +1,28 @@
+{
+  "story": "Aamir Abbas trained as a physician, graduating MBBS in 2007, and moved into epidemiology and data science to work on health problems at population scale.\n\nHe completed an MS in Epidemiology and Biostatistics at Aga Khan University and, as a Fulbright Scholar, a Master's in Health Data Analytics and Information Technology at Carnegie Mellon University.\n\nToday he directs the Data and Digital department at Vital Pakistan Trust, serves as Gates Foundation Principal Investigator on a study of vulnerability among women in Pakistan, and writes and teaches about health AI for clinicians and researchers.",
+  "education": [
+    {
+      "degree": "Master's in Health Data Analytics and Information Technology",
+      "institution": "Carnegie Mellon University",
+      "year": "",
+      "note": "Fulbright Scholar"
+    },
+    {
+      "degree": "MS in Epidemiology and Biostatistics",
+      "institution": "Aga Khan University",
+      "year": "",
+      "note": ""
+    },
+    {
+      "degree": "MBBS",
+      "institution": "Khyber Medical College",
+      "year": "2007",
+      "note": ""
+    }
+  ],
+  "honours": [
+    "Fulbright Scholar, Carnegie Mellon University",
+    "Gates Foundation Principal Investigator",
+    "Higher Education Commission scholarship (2011)"
+  ]
+}

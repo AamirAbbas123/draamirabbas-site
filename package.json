@@ -1,0 +1,26 @@
+{
+  "name": "draamirabbas-site",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/markdoc": "^0.15.11",
+    "@astrojs/react": "^4.4.2",
+    "@astrojs/sitemap": "^3.7.4",
+    "@astrojs/vercel": "^8.2.11",
+    "@fontsource-variable/source-serif-4": "^5.3.0",
+    "@fontsource/atkinson-hyperlegible": "^5.3.0",
+    "@keystatic/astro": "^6.0.0",
+    "@keystatic/core": "^0.6.9",
+    "astro": "^5.18.2",
+    "fast-xml-parser": "^5.11.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "type": "module",
+  "private": true
+}

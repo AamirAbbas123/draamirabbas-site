@@ -1,0 +1,74 @@
+---
+import Base from '../layouts/Base.astro';
+import DotGrid from '../components/DotGrid.astro';
+import { getSettings, getChallenge, challengeProgress, paragraphs, formatDate } from '../lib/content';
+const [s, c] = await Promise.all([getSettings(), getChallenge()]);
+const p = challengeProgress(c.startDate, c.targetDays ?? 1065);
+const posts = [...c.bestPosts].sort((a, b) => (a.day ?? 0) - (b.day ?? 0));
+---
+<Base title="The 1065-day LinkedIn challenge" description="One LinkedIn post a day for 1065 days on health AI, data and careers in medicine.">
+  <header class="page-head">
+    <h1>The {p.target}-day LinkedIn challenge</h1>
+    <p>One post a day, every day, on health AI, data and careers in medicine.</p>
+  </header>
+
+  <section class="progress">
+    {p.started ? (
+      <p class="count">
+        <span class="big">{p.day}</span>
+        <span class="of">{p.done ? `days complete. Finished on ${p.target} posts.` : `of ${p.target} days, started ${formatDate(c.startDate)}`}</span>
+      </p>
+    ) : (
+      <p class="count"><span class="of">{p.target} days, one dot each.</span></p>
+    )}
+    <DotGrid day={p.day} target={p.target} />
+    <p class="small muted legend"><span class="key done"></span> posted <span class="key"></span> to come</p>
+  </section>
+
+  <div class="two-col section">
+    {paragraphs(c.story).length > 0 && (
+      <section class="prose">
+        <div class="section-head"><h2>Why I started</h2></div>
+        {paragraphs(c.story).map((t) => <p>{t}</p>)}
+        {s.links?.linkedin && <a class="button" href={s.links.linkedin}>Follow on LinkedIn</a>}
+      </section>
+    )}
+    {c.themes.length > 0 && (
+      <section>
+        <div class="section-head"><h2>Recurring themes</h2></div>
+        <p>{c.themes.map((t) => <span class="tag">{t}</span>)}</p>
+      </section>
+    )}
+  </div>
+
+  {posts.length > 0 && (
+    <section class="section">
+      <div class="section-head"><h2>Selected posts</h2></div>
+      <ul class="entries">
+        {posts.map((b) => (
+          <li class="entry post">
+            <span class="day">Day {b.day}</span>
+            <div>
+              <p class="entry-title">{b.url ? <a href={b.url}>{b.title}</a> : b.title}</p>
+              {b.summary && <p class="muted">{b.summary}</p>}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {!paragraphs(c.story).length && !posts.length && s.links?.linkedin && (
+    <p class="section"><a class="button" href={s.links.linkedin}>Follow the challenge on LinkedIn</a></p>
+  )}
+</Base>
+<style>
+  .count { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .big { font-family: var(--serif); font-size: var(--step-4); font-weight: 600; color: var(--accent); line-height: 1; }
+  .of { color: var(--muted); font-size: var(--step-1); }
+  .legend { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.75rem; }
+  .key { width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--dot-empty); display: inline-block; margin-left: 0.6rem; }
+  .key.done { background: var(--accent); margin-left: 0; }
+  .post { display: grid; grid-template-columns: 5.5rem 1fr; gap: 1rem; }
+  .day { font-family: var(--serif); font-weight: 600; color: var(--accent); padding-top: 0.15rem; }
+</style>

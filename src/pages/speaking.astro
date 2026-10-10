@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import { getTalks, formatDate } from '../lib/content';
+const talks = await getTalks();
+---
+<Base title="Talks and media" description="Talks, conference presentations and interviews.">
+  <header class="page-head">
+    <h1>Talks and media</h1>
+    <p>Talks, conference presentations and interviews on health AI and data. <a href="/contact">Invite me to speak</a>.</p>
+  </header>
+  {talks.length > 0 ? (
+    <ul class="entries">
+      {talks.map(({ entry: t }) => (
+        <li class="entry">
+          <p class="entry-title">{t.link ? <a href={t.link}>{t.title}</a> : t.title}</p>
+          <p class="entry-meta">{[t.type, t.event, t.city, formatDate(t.date)].filter(Boolean).join(', ')}</p>
+        </li>
+      ))}
+    </ul>
+  ) : <p class="empty">Talks will be listed here.</p>}
+</Base>

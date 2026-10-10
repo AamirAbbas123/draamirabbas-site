@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCommunities } from '../lib/content';
+const items = await getCommunities();
+---
+<Base title="Community" description="Alumni networks for mentoring, careers and collaboration.">
+  <header class="page-head">
+    <h1>Community</h1>
+    <p>Building alumni networks that connect doctors and researchers for mentoring, careers and collaboration.</p>
+  </header>
+  {items.map(({ entry: c }) => (
+    <section class="community">
+      <div>
+        <h2>{c.name}</h2>
+        <p class="entry-meta">{[c.role, c.members].filter(Boolean).join(', ')}</p>
+      </div>
+      <div class="prose">
+        <p>{c.purpose}</p>
+        {c.highlights.length > 0 && <ul>{c.highlights.map((h) => <li>{h}</li>)}</ul>}
+        {c.joinUrl && <a class="button quiet" href={c.joinUrl}>How to join</a>}
+      </div>
+    </section>
+  ))}
+  {items.length === 0 && <p class="empty">Details of the alumni networks are coming soon.</p>}
+</Base>
+<style>
+  .community { display: grid; gap: 0.5rem 3rem; border-top: 1px solid var(--ink); padding-top: 1.25rem; margin-bottom: 3rem; }
+  @media (min-width: 860px) { .community { grid-template-columns: 1fr 1.6fr; } }
+  .community h2 { margin-bottom: 0.25rem; }
+  .community ul { padding-left: 1.2rem; }
+</style>

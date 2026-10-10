@@ -1,0 +1,120 @@
+---
+import Base from '../layouts/Base.astro';
+import { getSettings, getManualPublications, getOngoingResearch } from '../lib/content';
+import { getOrcidWorks } from '../lib/feeds';
+
+const [s, manual, ongoing] = await Promise.all([getSettings(), getManualPublications(), getOngoingResearch()]);
+const orcid = await getOrcidWorks(s.feeds?.orcidId);
+
+const topicNames: Record<string, string> = {
+  'health-ai': 'Health AI and NLP', mch: 'Maternal and child health', neurology: 'Neurology and stroke',
+  oncology: 'Paediatric oncology', methods: 'Epidemiology and methods', other: 'Other',
+};
+type Pub = { title: string; authors?: string; journal: string; year: number | null; doi?: string; url?: string; topic?: string; featured?: boolean };
+const norm = (t: string) => t.toLowerCase().replace(/[^a-z0-9]/g, '');
+const manualPubs: Pub[] = manual.map(({ entry: p }) => ({ ...p, doi: p.doi || undefined, url: p.url || undefined }));
+const seen = new Set(manualPubs.flatMap((p) => [p.doi?.toLowerCase(), norm(p.title)]).filter(Boolean));
+const all: Pub[] = [
+  ...manualPubs,
+  ...orcid.filter((w) => !seen.has(w.doi?.toLowerCase()) && !seen.has(norm(w.title))),
+].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+const featured = all.filter((p) => p.featured);
+const byYear = Object.entries(
+  all.reduce<Record<string, Pub[]>>((acc, p) => ((acc[p.year ?? 'Undated'] ??= []).push(p), acc), {})
+).sort(([a], [b]) => (b === 'Undated' ? -1 : a === 'Undated' ? 1 : Number(b) - Number(a)));
+const topics = [...new Set(all.map((p) => p.topic).filter(Boolean))] as string[];
+const link = (p: Pub) => (p.doi ? `https://doi.org/${p.doi}` : p.url);
+---
+<Base title="Research" description="Peer-reviewed publications and ongoing research.">
+  <header class="page-head">
+    <h1>Research</h1>
+    <p>{all.length > 0 ? `${all.length} publications` : 'Publications'} in health AI, maternal and child health, neurology and paediatric oncology.</p>
+    <div class="actions">
+      {s.links?.orcid && <a class="button quiet" href={s.links.orcid}>ORCID profile</a>}
+      {s.links?.scholar && <a class="button quiet" href={s.links.scholar}>Google Scholar</a>}
+    </div>
+  </header>
+
+  {featured.length > 0 && (
+    <section class="section">
+      <div class="section-head"><h2>Selected papers</h2></div>
+      <ul class="entries">
+        {featured.map((p) => (
+          <li class="entry">
+            <p class="entry-title">{link(p) ? <a href={link(p)}>{p.title}</a> : p.title}</p>
+            <p class="entry-meta">{[p.authors, p.journal, p.year].filter(Boolean).join('. ')}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {ongoing.length > 0 && (
+    <section class="section">
+      <div class="section-head"><h2>In progress</h2></div>
+      <ul class="entries">
+        {ongoing.map(({ entry: r }) => (
+          <li class="entry">
+            <p class="entry-title">{r.title}</p>
+            <p class="entry-meta">{r.type}, {r.status.toLowerCase()}</p>
+            {r.summary && <p>{r.summary}</p>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <section class="section">
+    <div class="section-head">
+      <h2>All publications</h2>
+      {topics.length > 1 && (
+        <label class="filter small">Topic
+          <select id="topic-filter">
+            <option value="">All topics</option>
+            {topics.map((t) => <option value={t}>{topicNames[t] ?? t}</option>)}
+          </select>
+        </label>
+      )}
+    </div>
+    {all.length === 0 ? (
+      <p class="empty">The full publication list is being added. {s.links?.orcid ? <a href={s.links.orcid}>See ORCID</a> : s.links?.scholar ? <a href={s.links.scholar}>See Google Scholar</a> : null}</p>
+    ) : (
+      byYear.map(([year, pubs]) => (
+        <div class="year" data-year>
+          <h3>{year}</h3>
+          <ul class="entries">
+            {pubs.map((p) => (
+              <li class="entry" data-topic={p.topic ?? ''}>
+                <p class="pub-title">{link(p) ? <a href={link(p)}>{p.title}</a> : p.title}</p>
+                <p class="entry-meta">{[p.authors, p.journal].filter(Boolean).join('. ')}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    )}
+  </section>
+</Base>
+<script>
+  const sel = document.getElementById('topic-filter') as HTMLSelectElement | null;
+  sel?.addEventListener('change', () => {
+    document.querySelectorAll<HTMLElement>('[data-year]').forEach((y) => {
+      let shown = 0;
+      y.querySelectorAll<HTMLElement>('[data-topic]').forEach((li) => {
+        const show = !sel.value || li.dataset.topic === sel.value;
+        li.hidden = !show;
+        if (show) shown++;
+      });
+      y.hidden = shown === 0;
+    });
+  });
+</script>
+<style>
+  .year { display: grid; gap: 0 2rem; margin-bottom: 1.5rem; }
+  @media (min-width: 760px) { .year { grid-template-columns: 6rem 1fr; } }
+  .year h3 { font-size: var(--step-1); color: var(--muted); }
+  .pub-title { margin: 0 0 0.2rem; font-weight: 700; line-height: 1.4; }
+  .pub-title a { color: var(--ink); }
+  .filter { display: flex; gap: 0.5rem; align-items: center; color: var(--muted); }
+  .filter select { font: inherit; padding: 0.3rem 0.5rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink); }
+</style>

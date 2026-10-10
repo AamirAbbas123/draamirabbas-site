@@ -1,0 +1,27 @@
+---
+// The 1065-day challenge as 1065 dots (71 columns x 15 rows). Filled = days done.
+interface Props { day: number; target: number; compact?: boolean; }
+const { day, target, compact = false } = Astro.props;
+const cols = target === 1065 ? 71 : Math.ceil(Math.sqrt(target * 4.7));
+const rows = Math.ceil(target / cols);
+const gap = 10, r = compact ? 3.1 : 3.4;
+const dot = (i: number) => {
+  const x = (i % cols) * gap + gap / 2, y = Math.floor(i / cols) * gap + gap / 2;
+  return `M${x - r} ${y}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0`;
+};
+let done = '', todo = '';
+for (let i = 0; i < target; i++) (i < day ? (done += dot(i)) : (todo += dot(i)));
+const w = cols * gap, h = rows * gap;
+const label = `${day} of ${target} days complete`;
+---
+<figure class:list={['dotgrid', { compact }]}>
+  <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label={label}>
+    <path d={todo} fill="var(--dot-empty)" />
+    <path d={done} fill="var(--accent)" />
+  </svg>
+</figure>
+<style>
+  .dotgrid { margin: 0; }
+  .dotgrid svg { width: 100%; height: auto; display: block; }
+  .dotgrid.compact { max-width: 46rem; }
+</style>
